@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planer smena</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2370/2370264.png">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg: #030712;
+            --accent: #6366f1;
+            --day: #fbbf24;
+            --night: #4f46e5;
+            --off: rgba(255, 255, 255, 0.03);
+            --urgent: #ff003c;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg); color: white; min-height: 100vh; padding: 40px 20px; overflow-x: hidden; }
+        
+        body::before {
+            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.1) 0%, transparent 40%),
+                        radial-gradient(circle at 90% 90%, rgba(255, 0, 60, 0.05) 0%, transparent 40%);
+            z-index: -1;
+        }
+
+        .container { max-width: 1200px; margin: auto; }
+        header { text-align: center; margin-bottom: 50px; }
+        header h1 { font-size: 3rem; font-weight: 800; background: linear-gradient(to right, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .controls {
+            background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--glass-border);
+            padding: 30px; border-radius: 24px; display: flex; flex-wrap: wrap; gap: 25px;
+            justify-content: center; align-items: center; margin-bottom: 50px;
+        }
+
+        .group { display: flex; flex-direction: column; gap: 8px; }
+        .group label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent); font-weight: 700; }
+
+        /* INPUT STIL SA SKRIVENIM KALENDAROM */
+        .input-wrapper { position: relative; width: 220px; }
+        .custom-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid var(--glass-border);
+            padding: 15px 20px; border-radius: 16px; color: white;
+            font-size: 1.2rem; font-weight: 600; outline: none; text-align: left;
+        }
+        
+        /* Nevidljivi pravi kalendar koji pokriva ikonicu */
+        #hiddenPicker {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 30px;
+            height: 30px;
+            opacity: 0; /* Potpuno nevidljiv ali klikabilan */
+            cursor: pointer;
+        }
+
+        .calendar-icon { 
+            position: absolute; 
+            right: 15px; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            pointer-events: none; 
+            opacity: 0.8; 
+            font-size: 1.2rem; 
+        }
+
+        select {
+            background: rgba(255, 255, 255, 0.07); border: 1px solid var(--glass-border);
+            padding: 15px 20px; border-radius: 16px; color: white; font-size: 1rem; cursor: pointer;
+        }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
+        .month { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 28px; padding: 20px; }
+        .m-name { font-size: 1.4rem; font-weight: 800; margin-bottom: 15px; color: #f8fafc; text-align: center; }
+
+        .days-h { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; color: #475569; font-size: 0.7rem; font-weight: 800; margin-bottom: 10px; }
+        .days-b { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+
+        .cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-size: 0.9rem; font-weight: 700; border: 2px solid transparent; }
+        
+        .s-day { background: var(--day); color: #451a03; }
+        .s-night { background: var(--night); color: white; }
+        .s-off { background: var(--off); color: #64748b; }
+        .is-urgent { border-color: var(--urgent) !important; box-shadow: 0 0 10px rgba(255, 0, 60, 0.4); }
+        .is-today { background: white !important; color: black !important; transform: scale(1.1); box-shadow: 0 0 20px rgba(255, 255, 255, 0.3); }
+
+        .legend { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+        .l-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 20px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Planer smena</h1>
+    </header>
+
+    <div class="controls">
+        <div class="group">
+            <label>IZABERI NOĆNU SMENU</label>
+            <div class="input-wrapper">
+                <input type="text" id="refDate" class="custom-input" placeholder="05/01/2026" maxlength="10">
+                <span class="calendar-icon">📅</span>
+                <!-- Skriveni klikabilni kalendar -->
+                <input type="date" id="hiddenPicker">
+            </div>
+        </div>
+        <div class="group">
+            <label>GODINA</label>
+            <select id="yearSelect"></select>
+        </div>
+        <div class="legend">
+            <div class="l-item"><div class="dot" style="background:var(--day)"></div> Dan</div>
+            <div class="l-item"><div class="dot" style="background:var(--night)"></div> Noć</div>
+            <div class="l-item"><div class="dot" style="background:var(--urgent); border: 1px solid white;"></div> Hitno</div>
+        </div>
+    </div>
+
+    <div id="calendar" class="grid"></div>
+</div>
+
+<script>
+    const URGENT_ANCHOR = new Date(2026, 4, 1);
+    const dateInput = document.getElementById('refDate');
+    const hiddenPicker = document.getElementById('hiddenPicker');
+    const yearSelect = document.getElementById('yearSelect');
+
+    // Postavi današnji datum
+    const d = new Date();
+    const formatInit = (dt) => `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${dt.getFullYear()}`;
+    dateInput.value = formatInit(d);
+
+    for(let i = d.getFullYear(); i <= d.getFullYear() + 3; i++) {
+        let opt = document.createElement('option');
+        opt.value = i; opt.innerText = i;
+        yearSelect.appendChild(opt);
+    }
+
+    // Kada klikneš na nevidljivi kalendar i izabereš datum
+    hiddenPicker.addEventListener('change', (e) => {
+        if(!e.target.value) return;
+        const selected = new Date(e.target.value);
+        dateInput.value = formatInit(selected);
+        render();
+    });
+
+    // Kada kucaš ručno
+    dateInput.addEventListener('input', (e) => {
+        let v = e.target.value.replace(/\D/g, '');
+        if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2);
+        if (v.length > 5) v = v.slice(0, 5) + '/' + v.slice(5, 9);
+        e.target.value = v;
+        render();
+    });
+
+    function parseDate(str) {
+        const p = str.split('/');
+        if (p.length !== 3) return null;
+        return new Date(p[2], p[1] - 1, p[0]);
+    }
+
+    function render() {
+        const refDate = parseDate(dateInput.value);
+        if (!refDate || isNaN(refDate)) return;
+
+        const year = parseInt(yearSelect.value);
+        const container = document.getElementById('calendar');
+        container.innerHTML = '';
+
+        const months = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
+
+        months.forEach((name, m) => {
+            let html = `<div class="month"><div class="m-name">${name}</div><div class="days-h"><div>P</div><div>U</div><div>S</div><div>Č</div><div>P</div><div>S</div><div>N</div></div><div class="days-b">`;
+            let first = new Date(year, m, 1).getDay();
+            let total = new Date(year, m+1, 0).getDate();
+            let offset = first === 0 ? 6 : first - 1;
+
+            for(let i=0; i<offset; i++) html += `<div></div>`;
+
+            for(let d=1; d<=total; d++) {
+                let curr = new Date(year, m, d);
+                let diffS = Math.floor((curr - refDate) / 86400000);
+                let cycle = ((diffS % 4) + 4) % 4;
+                let sCls = cycle === 0 ? 's-night' : (cycle === 1 || cycle === 2 ? 's-off' : 's-day');
+                let diffU = Math.floor((curr - URGENT_ANCHOR) / 86400000);
+                let uCls = (Math.abs(diffU) % 2 === 0) ? 'is-urgent' : '';
+                let tCls = curr.toDateString() === new Date().toDateString() ? 'is-today' : '';
+                html += `<div class="cell ${sCls} ${uCls} ${tCls}">${d}</div>`;
+            }
+            container.innerHTML += html + `</div></div>`;
+        });
+    }
+
+    yearSelect.addEventListener('change', render);
+    render();
+</script>
+</body>
+</html>

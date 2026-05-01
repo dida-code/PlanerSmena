@@ -1,0 +1,25 @@
+{
+  "short_name": "Planer",
+  "name": "Planer Smena Ultra",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2370/2370264.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#030712",
+  "display": "standalone",
+  "scope": "./",
+  "theme_color": "#6366f1",
+  "shortcuts": [
+    {
+      "name": "Otvori Planer",
+      "short_name": "Planer",
+      "url": "./index.html",
+      "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/2370/2370264.png", "sizes": "512x512" }]
+    }
+  ]
+}
