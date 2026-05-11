@@ -1,5 +1,5 @@
 // sw.js
-const CACHE_VERSION = 'v2-planer-svg';
+const CACHE_VERSION = 'v3-planer-svg';
 const CACHE_NAME = `planer-${CACHE_VERSION}`;
 
 self.addEventListener('install', (event) => {
