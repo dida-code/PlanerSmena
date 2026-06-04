@@ -205,6 +205,13 @@
 
     yearSelect.addEventListener('change', render);
     render();
+
+    // Региструј Service Worker за offline функционалност
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('✓ Service Worker регистрован - апликација сада ради offline!'))
+            .catch(err => console.log('✗ Service Worker грешка:', err));
+    }
 </script>
 </body>
 </html>
